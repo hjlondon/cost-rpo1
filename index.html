@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Intelligence-Led RPO | Labor Intelligence Framework</title>
+<meta name="description" content="Intelligence-Led RPO powered by the Labor Intelligence Framework. Explore 12 technical verticals and build a custom pricing estimate."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:#060E1C;color:#E2E8F0;font-family:'IBM Plex Sans',sans-serif;min-height:100vh}
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:#0A1628}
+  ::-webkit-scrollbar-thumb{background:#0E7C6E;border-radius:2px}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;outline:none;cursor:pointer;width:100%}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;cursor:pointer;border:2px solid #060E1C}
+  input[type=number]{-moz-appearance:textfield}
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+  .fade-in{animation:fadeIn .35s ease forwards}
+  .slide-down{animation:slideDown .3s ease forwards}
+  .tab-btn{transition:all .2s;border:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif}
+  .vert-card{transition:all .22s cubic-bezier(.4,0,.2,1);cursor:pointer;border:1px solid rgba(255,255,255,.07);border-radius:10px}
+  .vert-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.2)!important;background:rgba(255,255,255,.05)!important}
+  .model-card{transition:all .2s;cursor:pointer;border-radius:8px;border:1.5px solid rgba(255,255,255,.08)}
+  .model-card:hover{border-color:rgba(255,255,255,.22)!important}
+  .num-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#E2E8F0;border-radius:6px;padding:9px 13px;font-family:'IBM Plex Mono',monospace;font-size:15px;width:100%;outline:none;transition:border-color .2s}
+  .num-input:focus{border-color:#0E7C6E}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.05em}
+  .cta-btn{transition:all .2s;cursor:pointer;border:none;font-family:'IBM Plex Sans',sans-serif;font-weight:600;letter-spacing:.04em}
+  .cta-btn:hover{opacity:.88;transform:translateY(-1px)}
+  @media(max-width:900px){
+    .grid-4{grid-template-columns:repeat(2,1fr)!important}
+    .detail-grid{grid-template-columns:1fr!important}
+    .main-grid{grid-template-columns:1fr!important}
+    .model-grid{grid-template-columns:repeat(2,1fr)!important}
+    .stat-row{flex-direction:column!important;gap:12px!important;align-items:flex-start!important}
+    .header-inner{flex-direction:column!important;gap:12px!important;align-items:flex-start!important;padding:16px 0!important;height:auto!important}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+/* ─── DATA ──────────────────────────────────────────────────── */
+const VERTICALS = [
+{ id:“automation”, num:“01”, label:“Automation & Controls”, color:”#0E7C6E”, icon:“⚡”,
+roles:[“Controls Engineer (PLC / HMI / SCADA)”,“Automation Engineer”,“PLC Programmer / Integrator”,“Systems Integration Technician”,“Instrumentation & Controls Tech”,“Process Automation Engineer”],
+reality:“Extremely thin passive talent pool. Most Controls Engineers are employed and not actively looking. Multi-platform PLC experience (Allen-Bradley, Siemens, Mitsubishi) commands a 20–35% comp premium. Job boards yield under 5% of placements in this discipline — sourcing requires direct competitor mapping and relationship-based outreach.”,
+fill:“18–26 days”, seeking:“~10–14%”, comp:”$85K – $135K” },
+{ id:“machining”, num:“02”, label:“CNC Swiss & Manual Machinists”, color:”#2563A8”, icon:“⚙”,
+roles:[“Manual Machinist (Lathe, Mill, Grinder)”,“CNC Machinist — Mill & Turn”,“CNC Swiss Screw Machine Operator”,“CNC Swiss Setup Technician”,“Toolroom Machinist”,“Quality / CMM Inspector”],
+reality:“CNC Swiss operators are among the scarcest talent in precision manufacturing. The skill base is aging, apprenticeship pipelines are thin, and employers routinely poach from each other. Geographic radius matters enormously — most machinists will not relocate. Local market mapping is essential before posting a single req.”,
+fill:“55–80 days”, seeking:“~10–15%”, comp:”$55K – $95K” },
+{ id:“heavytech”, num:“03”, label:“Heavy Equipment Technicians”, color:”#C05621”, icon:“🔧”,
+roles:[“Heavy Equipment Technician / Mechanic”,“Field Service Tech (Cat, Komatsu, Deere)”,“Diesel Technician — Construction Equipment”,“Hydraulics & Pneumatics Technician”,“OEM-Certified Equipment Tech”,“Equipment Shop Foreman”],
+reality:“OEM-certified technicians (Caterpillar, Komatsu, Deere) are actively courted by dealerships and contractors simultaneously. Compensation is driven by OEM certification level and hydraulics proficiency. Union membership patterns vary significantly by region and must be mapped before outreach.”,
+fill:“40–65 days”, seeking:“~14–20%”, comp:”$60K – $105K” },
+{ id:“heavyop”, num:“04”, label:“Heavy Equipment Operators”, color:”#0F1F3D”, icon:“🏗”,
+roles:[“Excavator Operator”,“Crane Operator (NCCCO Certified)”,“Dozer / Motor Grader Operator”,“Loader / Scraper Operator”,“Paving Equipment Operator”,“Forklift / Rough Terrain Operator”],
+reality:“NCCCO crane certification creates a highly mobile talent pool commanding significant wage premiums. Candidates often hold multiple concurrent opportunities. Union hall relationships and IUOE chapter mapping are essential sourcing levers that most agency recruiters overlook entirely.”,
+fill:“30–50 days”, seeking:“~16–22%”, comp:”$55K – $100K” },
+{ id:“power”, num:“05”, label:“Power Generation Technicians”, color:”#2563A8”, icon:“⚡”,
+roles:[“Power Generation Technician”,“Generator Service Tech (Kohler, Cummins, CAT)”,“Turbine Technician — Gas / Steam”,“Substation Technician”,“Renewable Energy Tech (Solar, Wind)”,“UPS / Critical Power Systems Tech”],
+reality:“OEM factory-trained technicians (Cummins, Kohler, CAT) are recruited relentlessly by dealers, utilities, and data center operators. Renewable energy growth is expanding demand faster than training pipelines can produce talent. Critical power roles may carry security clearance requirements that further constrain the pool.”,
+fill:“45–70 days”, seeking:“~12–18%”, comp:”$65K – $110K” },
+{ id:“electricians”, num:“06”, label:“Electricians”, color:”#0E7C6E”, icon:“⚡”,
+roles:[“Journeyman Electrician (Commercial & Industrial)”,“Master Electrician”,“Industrial Maintenance Electrician”,“Inside Wireman”,“Electrical Foreman / Superintendent”,“Low-Voltage / Controls Electrician”],
+reality:“Electricians are the most universally in-demand trade in North America. Industrial maintenance electricians — capable of both construction and operational environments — sit at the top of the comp range. IBEW jurisdictional mapping is critical for any commercial or industrial project environment. License reciprocity varies by state.”,
+fill:“35–55 days”, seeking:“~15–22%”, comp:”$65K – $115K” },
+{ id:“motorrepair”, num:“07”, label:“Electric Motor Repair”, color:”#C05621”, icon:“🔌”,
+roles:[“Electric Motor Rewind Technician”,“Motor Test & Repair Specialist”,“Transformer Repair Technician”,“AC / DC Motor Technician”,“Armature Winder”,“Motor Shop Supervisor / Lead”],
+reality:“A specialty discipline with a rapidly aging workforce and almost no formal apprenticeship pipeline. EASA-certified shops compete fiercely for a shrinking talent base. Candidates with DC motor and transformer experience are exceptionally rare. Sourcing requires direct outreach to motor service centers and OEM service divisions — not job boards.”,
+fill:“50–75 days”, seeking:“~8–12%”, comp:”$50K – $85K” },
+{ id:“reliability”, num:“08”, label:“Reliability Technicians”, color:”#0F1F3D”, icon:“📡”,
+roles:[“Reliability Technician / Engineer”,“Vibration Analyst (ISO Cat I–IV)”,“Predictive Maintenance Technician”,“VFD / Variable Frequency Drive Tech”,“PLC Maintenance Technician”,“Condition Monitoring Specialist”],
+reality:“ISO-certified vibration analysts and multi-platform VFD technicians are among the highest-value and hardest-to-find workers in industrial maintenance. Most are embedded in long-tenured plant roles with strong retention. PLC cross-training (AB, Siemens, GE) expands the pool but narrows the truly qualified. Certification verification at screening is mandatory.”,
+fill:“68–95 days”, seeking:“~8–12%”, comp:”$70K – $120K” },
+{ id:“hvac”, num:“09”, label:“HVAC — Commercial & Industrial”, color:”#0E7C6E”, icon:“🌡”,
+roles:[“Commercial HVAC Technician”,“Industrial HVAC / HVAC-R Technician”,“HVAC Service & Maintenance Tech”,“HVAC Controls Tech (BAS/BMS)”,“HVAC Installation Technician”,“HVAC Foreman / Service Manager”],
+reality:“EPA 608 certification is the floor. Commercial and industrial employers demand additional credentials: NATE certification, BAS/BMS controls experience, and advanced refrigerant handling proficiency. Industrial HVAC technicians in manufacturing, pharmaceutical, or data center environments command a 25–40% premium over residential counterparts.”,
+fill:“30–50 days”, seeking:“~14–20%”, comp:”$55K – $100K” },
+{ id:“compressor”, num:“10”, label:“Air Compressor Technicians”, color:”#2563A8”, icon:“💨”,
+roles:[“Air Compressor Service Technician”,“Rotary Screw Compressor Tech (Atlas Copco, IR, Kaeser)”,“Reciprocating Compressor Technician”,“Compressed Air Systems Specialist”,“Pneumatics & Compressed Air Tech”,“Field Service Engineer — Industrial Air”],
+reality:“OEM factory-trained compressor technicians — certified on Atlas Copco, Ingersoll Rand, or Kaeser platforms — are in persistent short supply. Dealers and independent service organisations compete directly for the same small talent pool. Most are reached through OEM service networks and direct competitor outreach, not job boards.”,
+fill:“45–65 days”, seeking:“~10–14%”, comp:”$58K – $95K” },
+{ id:“pumps”, num:“11”, label:“Industrial Pump Technicians”, color:”#C05621”, icon:“🔄”,
+roles:[“Industrial Pump Technician / Mechanic”,“Rotating Equipment Technician”,“Centrifugal Pump Specialist”,“Positive Displacement Pump Tech”,“Pump & Seal Rebuild Technician”,“Fluid Systems Field Service Engineer”],
+reality:“Industrial pump technicians are a cross-industry essential found in chemical processing, water/wastewater, oil & gas, food & beverage, and manufacturing. Candidates combining mechanical pump knowledge with seal systems and alignment proficiency are especially scarce and naturally overlap with the Reliability vertical.”,
+fill:“40–60 days”, seeking:“~12–16%”, comp:”$55K – $90K” },
+{ id:“chiller”, num:“12”, label:“Chiller & Refrigeration”, color:”#0F1F3D”, icon:“❄”,
+roles:[“Chiller Technician (Centrifugal, Screw, Absorption)”,“Commercial Refrigeration Technician”,“Industrial Refrigeration Tech (Ammonia / NH3)”,“HVAC-R Controls & Chiller Plant Operator”,“Cold Storage / Freezer Plant Technician”,“Chiller Field Service Engineer (Trane, Carrier, York)”],
+reality:“Ammonia refrigeration technicians in PSM-regulated environments are in critically short supply nationally. OEM-certified chiller techs (Trane, Carrier, York) command top-of-market wages and are actively recruited by data centres, hospitals, pharma manufacturers, and food processors simultaneously. RETA and IIAR-affiliated networks are the primary sourcing channels.”,
+fill:“55–85 days”, seeking:“~8–11%”, comp:”$65K – $115K” },
+];
+
+const MODELS = [
+{ id:“full”,      label:“Full RPO”,        desc:“End-to-end ownership”,      mgmtMin:12000, mgmtMax:35000, mgmtDef:20000, pctMin:8,  pctMax:14, pctDef:11, term:“1–12 month engagements”, color:”#0E7C6E” },
+{ id:“selective”, label:“Selective RPO”,   desc:“Sourcing & screening only”, mgmtMin:6000,  mgmtMax:18000, mgmtDef:12000, pctMin:10, pctMax:16, pctDef:13, term:“1–12 month engagements”, color:”#2563A8” },
+{ id:“project”,   label:“Project RPO”,     desc:“Fixed surge engagement”,    mgmtMin:25000, mgmtMax:150000,mgmtDef:60000, pctMin:0,  pctMax:0,  pctDef:0,  term:“Fixed fee per project”,  color:”#C05621” },
+{ id:“exec”,      label:“Executive Search”,desc:“Retained leadership search”,mgmtMin:0,     mgmtMax:0,     mgmtDef:0,     pctMin:20, pctMax:25, pctDef:22, term:“Per search”,             color:”#1E3A5F” },
+];
+
+const fmt = n => new Intl.NumberFormat(“en-US”,{style:“currency”,currency:“USD”,maximumFractionDigits:0}).format(n);
+
+/* ─── SLIDER ─────────────────────────────────────────────────── */
+function Slider({ value, min, max, step=1, onChange, color=”#0E7C6E” }) {
+const pct = max === min ? 0 : ((value - min) / (max - min)) * 100;
+return (
+<input type=“range” value={value} min={min} max={max} step={step} onChange={e => onChange(+e.target.value)}
+style={{ background:`linear-gradient(to right,${color} 0%,${color} ${pct}%,rgba(255,255,255,.1) ${pct}%,rgba(255,255,255,.1) 100%)` }}
+/>
+);
+}
+
+/* ─── VERTICAL CARD ──────────────────────────────────────────── */
+function VertCard({ v, active, onClick }) {
+return (
+<div className=“vert-card” onClick={onClick}
+style={{ padding:“16px 14px”, background: active ? `${v.color}1A` : “rgba(255,255,255,.03)”, borderColor: active ? `${v.color}70` : undefined }}>
+<div style={{ display:“flex”, alignItems:“flex-start”, gap:10 }}>
+<div style={{ width:34, height:34, borderRadius:8, background:`${v.color}22`, display:“flex”, alignItems:“center”, justifyContent:“center”, fontSize:16, flexShrink:0 }}>{v.icon}</div>
+<div>
+<div style={{ fontFamily:”‘IBM Plex Mono’”, fontSize:10, color:v.color, letterSpacing:”.08em”, marginBottom:4 }}>{v.num}</div>
+<div style={{ fontSize:12, fontWeight:600, color: active ? “#fff” : “#CBD5E1”, lineHeight:1.35 }}>{v.label}</div>
+</div>
+</div>
+{active && (
+<div style={{ marginTop:10 }}>
+<span className=“pill” style={{ background:`${v.color}22`, color:v.color }}>⏱ {v.fill}</span>
+</div>
+)}
+</div>
+);
+}
+
+/* ─── DETAIL PANEL ───────────────────────────────────────────── */
+function DetailPanel({ v, onPricing }) {
+return (
+<div className=“slide-down” style={{ background:”#0A1628”, border:`1px solid ${v.color}40`, borderRadius:14, overflow:“hidden”, marginBottom:8 }}>
+{/* Header */}
+<div style={{ background:`linear-gradient(135deg,${v.color}22,${v.color}08)`, borderBottom:`1px solid ${v.color}25`, padding:“22px 28px” }}>
+<div style={{ display:“flex”, alignItems:“center”, justifyContent:“space-between”, flexWrap:“wrap”, gap:16 }}>
+<div style={{ display:“flex”, alignItems:“center”, gap:14 }}>
+<div style={{ width:46, height:46, borderRadius:10, background:`${v.color}25`, display:“flex”, alignItems:“center”, justifyContent:“center”, fontSize:22 }}>{v.icon}</div>
+<div>
+<div style={{ fontFamily:”‘IBM Plex Mono’”, fontSize:11, color:v.color, letterSpacing:”.1em”, marginBottom:5 }}>VERTICAL {v.num}</div>
+<div style={{ fontFamily:”‘Syne’,sans-serif”, fontSize:20, fontWeight:800, color:”#fff” }}>{v.label}</div>
+</div>
+</div>
+<div className=“stat-row” style={{ display:“flex”, gap:28 }}>
+{[[“Avg. Time-to-Fill”,v.fill],[“Actively Seeking”,v.seeking],[“Comp Range”,v.comp]].map(([lbl,val])=>(
+<div key={lbl} style={{ textAlign:“right” }}>
+<div style={{ fontSize:10, color:”#4A7C74”, letterSpacing:”.06em”, textTransform:“uppercase”, marginBottom:4 }}>{lbl}</div>
+<div style={{ fontFamily:”‘IBM Plex Mono’”, fontSize:13, fontWeight:600, color:”#E2E8F0” }}>{val}</div>
+</div>
+))}
+</div>
+</div>
+</div>
+{/* Body */}
+<div className=“detail-grid” style={{ display:“grid”, gridTemplateColumns:“1fr 1fr” }}>
+<div style={{ padding:“24px 28px”, borderRight:“1px solid rgba(255,255,255,.06)” }}>
+<div style={{ fontFamily:”‘IBM Plex Mono’”, fontSize:11, color:v.color, letterSpacing:”.1em”, textTransform:“uppercase”, marginBottom:16 }}>Roles We Place</div>
+{v.roles.map((r,i)=>(
+<div key={i} style={{ display:“flex”, alignItems:“center”, gap:10, marginBottom:9 }}>
+<div style={{ width:5, height:5, borderRadius:“50%”, background:v.color, flexShrink:0 }}/>
+<span style={{ fontSize:13, color:”#CBD5E1” }}>{r}</span>
+</div>
+))}
+</div>
+<div style={{ padding:“24px 28px” }}>
+<div style={{ fontFamily:”‘IBM Plex Mono’”, fontSize:11, color:”#64748B”, letterSpacing:”.1em”, textTransform:“uppercase”, marginBottom:16 }}>Labor Market Reality</div>
+<p style={{ fontSize:13, color:”#94A3B8”, lineHeight:1.8, marginBottom:18 }}>{v.reality}</p>
+<div style={{ padding:“13px 16px”, background:`${v.color}12`, borderLeft:`3px solid ${v.color}`, borderRadius:“0 6px 6px 0”, marginBottom:18 }}>
+<p style={{ fontSize:12, color:”#94A3B8”, lineHeight:1.65 }}>
+<strong style={{ color:v.color }}>LIF Approach: </strong>
+We map the active talent supply before outreach begins. Every candidate we contact in this vertical is reached through a channel strategy built specifically for how this talent pool behaves.
+</p>
+</div>
+<button className=“cta-btn” onClick={onPricing}
+style={{ padding:“10px 20px”, background:v.color, borderRadius:7, color:”#fff”, fontSize:13 }}>
+Build a Pricing Estimate →
+</button>
+</div>
+</div>
+</div>
+);
+}
+
+/* ─── MODEL CARD ─────────────────────────────────────────────── */
+function ModelCard({ m, active, onClick }) {
+return (
+<div className=“model-card” onClick={onClick}
+style={{ padding:“14px 16px”, background: active ? `${m.color}1A` : “rgba(255,255,255,.03)”, borderColor: active ? m.color : undefined, color:m.color }}>
+<div style={{ fontFamily:”‘Syne’,sans-serif”, fontSize:14, fontWeight:700, color: active ? “#fff” : “#94A3B8”, marginBottom:3 }}>{m.label}</div>
+<div style={{ fontSize:11, color: active ? m.color : “#475569”, marginBottom:6 }}>{m.desc}</div>
+<div style={{ fontSize:10, color:”#334155”, fontFamily:”‘IBM Plex Mono’” }}>{m.term}</div>
+</div>
+);
+}
+
+/* ─── MAIN APP ───────────────────────────────────────────────── */
+function App() {
+const [tab, setTab]         = useState(“verticals”);
+const [active, setActive]   = useState(null);
+const [model, setModel]     = useState(“full”);
+const [hires, setHires]     = useState(25);
+const [salary, setSalary]   = useState(75000);
+const [months, setMonths]   = useState(6);
+const [mgmt, setMgmt]       = useState(20000);
+const [pct, setPct]         = useState(11);
+
+const m = MODELS.find(x => x.id === model);
+const v = VERTICALS.find(x => x.id === active);
+
+useEffect(() => {
+setMgmt(m.mgmtDef);
+setPct(m.pctDef);
+if (model === “full” && months < 1) setMonths(1);
+if (model === “selective” && months < 1) setMonths(1);
+}, [model]);
+
+const perHireAmt   = (salary * pct) / 100;
+const totalMgmt    = (model === “project”) ? mgmt : mgmt * months;
+const totalPlace   = (model === “project”) ? 0 : perHireAmt * (model === “exec” ? hires : hires);
+const total        = totalMgmt + totalPlace;
+const agencyCost   = salary * 0.22 * hires;
+const saving       = agencyCost - total;
+
+const MONTHS_LABELS = [“1 mo”,“2 mo”,“3 mo”,“4 mo”,“5 mo”,“6 mo”,“7 mo”,“8 mo”,“9 mo”,“10 mo”,“11 mo”,“12 mo”];
+
+return (
+<div style={{ minHeight:“100vh” }}>
+
+```
+  {/* ── HEADER ── */}
+  <div style={{ background:"#0A1628", borderBottom:"1px solid rgba(14,124,110,.3)", padding:"0 32px", position:"sticky", top:0, zIndex:100 }}>
+    <div className="header-inner" style={{ maxWidth:1200, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", height:64 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+        <div style={{ width:34, height:34, background:"linear-gradient(135deg,#0E7C6E,#0A4840)", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <span style={{ color:"#fff", fontSize:12, fontFamily:"'IBM Plex Mono'", fontWeight:600 }}>LIF</span>
+        </div>
+        <div>
+          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800, color:"#fff", letterSpacing:".02em" }}>INTELLIGENCE-LED RPO</div>
+          <div style={{ fontSize:10, color:"#4A7C74", letterSpacing:".1em", textTransform:"uppercase" }}>Labor Intelligence Framework</div>
+        </div>
+      </div>
+      <div style={{ display:"flex", gap:4 }}>
+        {[["verticals","▦  Verticals"],["pricing","⊞  Pricing"]].map(([t,lbl])=>(
+          <button key={t} className="tab-btn" onClick={()=>setTab(t)}
+            style={{ padding:"8px 20px", borderRadius:6, fontSize:13, fontWeight:500, letterSpacing:".04em", textTransform:"uppercase",
+              background: tab===t ? "rgba(14,124,110,.25)" : "transparent",
+              color: tab===t ? "#2DD4BF" : "#64748B",
+              borderBottom: tab===t ? "2px solid #0E7C6E" : "2px solid transparent" }}>
+            {lbl}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div style={{ maxWidth:1200, margin:"0 auto", padding:"40px 32px" }}>
+
+    {/* ════ VERTICALS TAB ════ */}
+    {tab === "verticals" && (
+      <div className="fade-in">
+        <div style={{ marginBottom:36 }}>
+          <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:30, fontWeight:800, color:"#fff", marginBottom:8 }}>Technical Verticals</h1>
+          <p style={{ color:"#64748B", fontSize:14 }}>Select a discipline to view roles, labor market intelligence, and sourcing context.</p>
+        </div>
+
+        <div className="grid-4" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:24 }}>
+          {VERTICALS.map(vert=>(
+            <VertCard key={vert.id} v={vert} active={active===vert.id}
+              onClick={()=>setActive(active===vert.id ? null : vert.id)}/>
+          ))}
+        </div>
+
+        {v && <DetailPanel v={v} onPricing={()=>setTab("pricing")}/>}
+
+        {!v && (
+          <div style={{ textAlign:"center", padding:"50px 0", color:"#1E3A5F" }}>
+            <div style={{ fontSize:40, marginBottom:12 }}>▦</div>
+            <div style={{ fontSize:13, color:"#334155" }}>Select a vertical above to explore roles and labor market intelligence</div>
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* ════ PRICING TAB ════ */}
+    {tab === "pricing" && (
+      <div className="fade-in">
+        <div style={{ marginBottom:36 }}>
+          <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:30, fontWeight:800, color:"#fff", marginBottom:8 }}>Engagement Pricing</h1>
+          <p style={{ color:"#64748B", fontSize:14 }}>Customise your engagement model and hiring volume to generate a cost estimate.</p>
+        </div>
+
+        <div className="main-grid" style={{ display:"grid", gridTemplateColumns:"1fr 380px", gap:24 }}>
+
+          {/* ── LEFT CONTROLS ── */}
+          <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+
+            {/* 01 Model */}
+            <div style={{ background:"#0A1628", border:"1px solid rgba(255,255,255,.07)", borderRadius:12, padding:"22px 24px" }}>
+              <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:11, color:"#4A7C74", letterSpacing:".1em", textTransform:"uppercase", marginBottom:16 }}>01 — Engagement Model</div>
+              <div className="model-grid" style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:8 }}>
+                {MODELS.map(mod=>(
+                  <ModelCard key={mod.id} m={mod} active={model===mod.id} onClick={()=>setModel(mod.id)}/>
+                ))}
+              </div>
+            </div>
+
+            {/* 02 Duration (months 1–12) — not for project/exec */}
+            {(model === "full" || model === "selective") && (
+              <div style={{ background:"#0A1628", border:"1px solid rgba(255,255,255,.07)", borderRadius:12, padding:"22px 24px" }}>
+                <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:11, color:"#4A7C74", letterSpacing:".1em", textTransform:"uppercase", marginBottom:16 }}>
+                  02 — Engagement Duration
+                </div>
+                {/* Month picker */}
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:6, marginBottom:6 }}>
+                  {MONTHS_LABELS.map((lbl,i)=>{
+                    const mo = i+1;
+                    const sel = months === mo;
+                    return (
+                      <button key={mo} onClick={()=>setMonths(mo)}
+                        style={{ padding:"9px 4px", borderRadius:6, border:`1.5px solid ${sel ? m.color : "rgba(255,255,255,.08)"}`,
+                          background: sel ? `${m.color}22` : "rgba(255,255,255,.03)",
+                          color: sel ? m.color : "#64748B", fontSize:12, fontWeight:600,
+                          cursor:"pointer", fontFamily:"'IBM Plex Mono'", transition:"all .15s" }}>
+                        {lbl}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ fontSize:11, color:"#334155", fontFamily:"'IBM Plex Mono'", marginTop:6 }}>
+                  Selected: <span style={{ color:m.color }}>{months} {months===1?"month":"months"}</span>
+                  {months >= 12 && <span style={{ color:"#2DD4BF", marginLeft:10 }}>✓ Best value</span>}
+                  {months <= 3 && <span style={{ color:"#F59E0B", marginLeft:10 }}>Short engagement — Project RPO may be better suited</span>}
+                </div>
+              </div>
+            )}
+
+            {/* 03 Volume */}
+            <div style={{ background:"#0A1628", border:"1px solid rgba(255,255,255,.07)", borderRadius:12, padding:"22px 24px" }}>
+              <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:11, color:"#4A7C74", letterSpacing:".1em", textTransform:"uppercase", marginBottom:20 }}>
+                {model === "full" || model === "selective" ? "03" : "02"} — Hiring Volume
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
+                {model !== "project" && (
+                  <div>
+                    <label style={{ display:"block", fontSize:12, color:"#64748B", marginBottom:8 }}>
+                      {model === "exec" ? "Number of Searches" : "Number of Hires"}
+                    </label>
+                    <input type="number" className="num-input" value={hires} min={1} max={model==="exec"?20:500}
+                      onChange={e=>setHires(Math.max(1, parseInt(e.target.value)||1))}/>
+                    <div style={{ marginTop:10 }}>
+                      <Slider value={hires} min={1} max={model==="exec"?20:200} onChange={setHires} color={m.color}/>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#334155", fontFamily:"'IBM Plex Mono'", marginTop:3 }}>
+                        <span>1</span><span>{model==="exec"?"20":"200"}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <label style={{ display:"block", fontSize:12, color:"#64748B", marginBottom:8 }}>
+                    {model==="exec" ? "Avg. First-Year Base Salary" : "Average Salary per Hire"}
+                  </label>
+                  <input type="number" className="num-input" value={salary} step={5000} min={30000}
+                    onChange={e=>setSalary(Math.max(30000, parseInt(e.target.value)||30000))}/>
+                  <div style={{ marginTop:10 }}>
+                    <Slider value={salary} min={30000} max={250000} step={5000} onChange={setSalary} color={m.color}/>
+                    <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#334155", fontFamily:"'IBM Plex Mono'", marginTop:3 }}>
+                      <span>$30K</span><span>$250K</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 04 Fees */}
+            <div style={{ background:"#0A1628", border:"1px solid rgba(255,255,255,.07)", borderRadius:12, padding:"22px 24px" }}>
+              <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:11, color:"#4A7C74", letterSpacing:".1em", textTransform:"uppercase", marginBottom:20 }}>
+                {model === "full" || model === "selective" ? "04" : "03"} — Fee Structure
+              </div>
+
+              {model === "project" && (
+                <div>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+                    <label style={{ fontSize:12, color:"#64748B" }}>Fixed Project Fee</label>
+                    <span style={{ fontFamily:"'IBM Plex Mono'", fontSize:14, color:m.color, fontWeight:600 }}>{fmt(mgmt)}</span>
+                  </div>
+                  <Slider value={mgmt} min={25000} max={150000} step={5000} onChange={setMgmt} color={m.color}/>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#334155", fontFamily:"'IBM Plex Mono'", marginTop:4 }}>
+                    <span>$25K</span><span>$150K</span>
+                  </div>
+                  <p style={{ fontSize:11, color:"#475569", marginTop:12, lineHeight:1.6 }}>All-inclusive fixed fee covering the full sourcing, screening and selection cycle for the defined project scope.</p>
+                </div>
+              )}
+
+              {(model === "full" || model === "selective") && (
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
+                  <div>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+                      <label style={{ fontSize:12, color:"#64748B" }}>Monthly Mgmt Fee</label>
+                      <span style={{ fontFamily:"'IBM Plex Mono'", fontSize:13, color:m.color, fontWeight:600 }}>{fmt(mgmt)}</span>
+                    </div>
+                    <Slider value={mgmt} min={m.mgmtMin} max={m.mgmtMax} step={500} onChange={setMgmt} color={m.color}/>
+                    <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#334155", fontFamily:"'IBM Plex Mono'", marginTop:4 }}>
+                      <span>{fmt(m.mgmtMin)}</span><span>{fmt(m.mgmtMax)}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+                      <label style={{ fontSize:12, color:"#64748B" }}>Per-Hire Fee</label>
+                      <span style={{ fontFamily:"'IBM Plex Mono'", fontSize:13, color:m.color, fontWeight:600 }}>{pct}%</span>
+                    </div>
+                    <Slider value={pct} min={m.pctMin} max={m.pctMax} step={0.5} onChange={setPct} color={m.color}/>
+                    <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#334155", fontFamily:"'IBM Plex Mono'", marginTop:4 }}>
+                      <span>{m.pctMin}%</span><span>{m.pctMax}%</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {model === "exec" && (
+                <div>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+                    <label style={{ fontSize:12, color:"#64748B" }}>Retained Search Fee</label>
+                    <span style={{ fontFamily:"'IBM Plex Mono'", fontSize:13, color:m.color, fontWeight:600 }}>{pct}% of first-year base</span>
+                  </div>
+                  <Slider value={pct} min={20} max={25} step={0.5} onChange={setPct} color={m.color}/>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#334155", fontFamily:"'IBM Plex Mono'", marginTop:4 }}>
+                    <span>20%</span><span>25%</span>
+                  </div>
+                  <div style={{ marginTop:16, padding:"12px 14px", background:"rgba(255,255,255,.03)", borderRadius:8, border:"1px solid rgba(255,255,255,.06)" }}>
+                    <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:10, color:"#475569", letterSpacing:".08em", marginBottom:10 }}>PAYMENT SCHEDULE — PER SEARCH</div>
+                    {[["At Engagement","1/3 upfront"],["At Shortlist","1/3 on shortlist"],["At Placement","1/3 on start"]].map(([lbl,sub])=>(
+                      <div key={lbl} style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
+                        <div>
+                          <div style={{ fontSize:12, color:"#94A3B8" }}>{lbl}</div>
+                          <div style={{ fontSize:10, color:"#475569" }}>{sub}</div>
+                        </div>
+                        <span style={{ fontFamily:"'IBM Plex Mono'", fontSize:13, color:"#E2E8F0" }}>{fmt(perHireAmt/3)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── RIGHT SUMMARY ── */}
+          <div>
+            <div style={{ background:"#0A1628", border:`1px solid ${m.color}45`, borderRadius:12, overflow:"hidden", position:"sticky", top:84 }}>
+
+              {/* Summary header */}
+              <div style={{ background:`linear-gradient(135deg,${m.color}30,${m.color}0D)`, padding:"18px 22px", borderBottom:`1px solid ${m.color}25` }}>
+                <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:10, color:m.color, letterSpacing:".12em", textTransform:"uppercase", marginBottom:5 }}>Cost Estimate</div>
+                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:14, color:"#94A3B8" }}>{m.label} · {m.desc}</div>
+              </div>
+
+              {/* Line items */}
+              <div style={{ padding:"20px 22px" }}>
+                {(model === "full" || model === "selective") && (<>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,.05)" }}>
+                    <div>
+                      <div style={{ fontSize:12, color:"#94A3B8" }}>Management Fee</div>
+                      <div style={{ fontSize:11, color:"#475569", fontFamily:"'IBM Plex Mono'", marginTop:2 }}>{fmt(mgmt)}/mo × {months} {months===1?"month":"months"}</div>
+                    </div>
+                    <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:15, color:"#E2E8F0", fontWeight:600 }}>{fmt(totalMgmt)}</div>
+                  </div>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,.05)" }}>
+                    <div>
+                      <div style={{ fontSize:12, color:"#94A3B8" }}>Placement Fees</div>
+                      <div style={{ fontSize:11, color:"#475569", fontFamily:"'IBM Plex Mono'", marginTop:2 }}>{hires} hires × {fmt(perHireAmt)} ({pct}%)</div>
+                    </div>
+                    <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:15, color:"#E2E8F0", fontWeight:600 }}>{fmt(totalPlace)}</div>
+                  </div>
+                </>)}
+
+                {model === "project" && (
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,.05)" }}>
+                    <div>
+                      <div style={{ fontSize:12, color:"#94A3B8" }}>Fixed Project Fee</div>
+                      <div style={{ fontSize:11, color:"#475569", marginTop:2 }}>All-inclusive engagement</div>
+                    </div>
+                    <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:15, color:"#E2E8F0", fontWeight:600 }}>{fmt(mgmt)}</div>
+                  </div>
+                )}
+
+                {model === "exec" && (
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,.05)" }}>
+                    <div>
+                      <div style={{ fontSize:12, color:"#94A3B8" }}>Retained Search Fees</div>
+                      <div style={{ fontSize:11, color:"#475569", fontFamily:"'IBM Plex Mono'", marginTop:2 }}>{hires} {hires===1?"search":"searches"} × {fmt(perHireAmt)} ({pct}%)</div>
+                    </div>
+                    <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:15, color:"#E2E8F0", fontWeight:600 }}>{fmt(totalPlace)}</div>
+                  </div>
+                )}
+
+                {/* Total */}
+                <div style={{ padding:"16px 0 4px" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                    <div style={{ fontFamily:"'Syne',sans-serif", fontSize:13, fontWeight:700, color:"#94A3B8", textTransform:"uppercase", letterSpacing:".05em" }}>Total Estimate</div>
+                    <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:24, fontWeight:600, color:m.color }}>{fmt(total)}</div>
+                  </div>
+                  {(model === "full" || model === "selective") && (
+                    <div style={{ textAlign:"right", fontSize:11, color:"#334155", fontFamily:"'IBM Plex Mono'" }}>
+                      {fmt(total/hires)} per hire · {fmt(total/months)}/mo effective
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Agency comparison */}
+              {(model === "full" || model === "selective") && (
+                <div style={{ margin:"0 22px 20px", padding:"14px 16px", background:"rgba(255,255,255,.03)", borderRadius:8, border:"1px solid rgba(255,255,255,.06)" }}>
+                  <div style={{ fontFamily:"'IBM Plex Mono'", fontSize:10, color:"#475569", letterSpacing:".1em", textTransform:"uppercase", marginBottom:12 }}>vs. Agency Model (22% avg.)</div>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                    <span style={{ fontSize:12, color:"#64748B" }}>Typical agency cost</span>
+                    <span style={{ fontFamily:"'IBM Plex Mono'", fontSize:13, color:"#64748B", textDecoration:"line-through" }}>{fmt(agencyCost)}</span>
+                  </div>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <span style={{ fontSize:12, color: saving>0 ? "#2DD4BF" : "#F87171" }}>
+                      {saving>0 ? "▼ Estimated saving" : "▲ Additional cost"}
+                    </span>
+                    <span style={{ fontFamily:"'IBM Plex Mono'", fontSize:16, fontWeight:600, color: saving>0 ? "#2DD4BF" : "#F87171" }}>
+                      {saving>0?"":"-"}{fmt(Math.abs(saving))}
+                    </span>
+                  </div>
+                  {saving > 0 && (
+                    <div style={{ marginTop:8, fontSize:10, color:"#334155", fontFamily:"'IBM Plex Mono'" }}>
+                      {Math.round((saving/agencyCost)*100)}% reduction vs. agency spend
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Duration callout */}
+              {(model === "full" || model === "selective") && months <= 3 && (
+                <div style={{ margin:"0 22px 20px", padding:"12px 14px", background:"rgba(245,158,11,.08)", borderRadius:8, border:"1px solid rgba(245,158,11,.2)" }}>
+                  <div style={{ fontSize:11, color:"#F59E0B", lineHeight:1.6 }}>
+                    ⚠ Short engagements under 3 months may not allow enough time for the full Labor Intelligence Framework to compound. <strong>Project RPO</strong> may be better suited.
+                  </div>
+                </div>
+              )}
+
+              {/* Disclaimer */}
+              <div style={{ padding:"0 22px 22px" }}>
+                <div style={{ padding:"10px 14px", background:`${m.color}0D`, borderRadius:7, fontSize:11, color:"#64748B", lineHeight:1.65 }}>
+                  ⓘ Indicative estimate based on LIF standard rate ranges. Final pricing is confirmed at proposal stage following a scoping call.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+
+  {/* ── FOOTER ── */}
+  <div style={{ borderTop:"1px solid rgba(255,255,255,.05)", marginTop:60, padding:"28px 32px", textAlign:"center" }}>
+    <div style={{ fontFamily:"'Syne',sans-serif", fontSize:14, fontWeight:700, color:"#1E3A5F", letterSpacing:".05em" }}>INTELLIGENCE-LED RPO</div>
+    <div style={{ fontSize:11, color:"#1E3A5F", marginTop:4 }}>Powered by the Labor Intelligence Framework · Confidential</div>
+  </div>
+</div>
+```
+
+);
+}
+
+const root = ReactDOM.createRoot(document.getElementById(“root”));
+root.render(<App/>);
+</script>
+
+</body>
+</html>
